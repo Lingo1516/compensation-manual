@@ -34,6 +34,14 @@ main section.page.active table{font-size:12.5px}
   main section.page.active{width:100%;padding:20px 16px}
   #pager{width:100%}
 }
+
+/* ===== 放映模式 ===== */
+body.present nav{display:none}
+body.present main{margin-left:0;padding:10px}
+body.present main section.page.active{width:min(100%,calc((100vh - 84px)*16/9))}
+body.present #pager{position:fixed;left:50%;transform:translateX(-50%);bottom:10px;width:auto;max-width:96vw;opacity:.22;transition:opacity .2s;z-index:60}
+body.present #pager:hover{opacity:1}
+@media (max-width:820px){body.present #menuBtn{display:none}}
 @media print{
   main section.page{aspect-ratio:auto !important;width:auto !important;overflow:visible !important}
   #fsBtn{display:none !important}
@@ -95,9 +103,27 @@ main section.page.active table{font-size:12.5px}
   document.getElementById('prevBtn').addEventListener('click',function(){clearHits();show(cur-1);});
   document.getElementById('nextBtn').addEventListener('click',function(){clearHits();show(cur+1);});
   document.getElementById('menuBtn').addEventListener('click',function(){nav.classList.toggle('open');});
-  document.getElementById('fsBtn').addEventListener('click',function(){
-    if(document.fullscreenElement){document.exitFullscreen();}
-    else{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();}
+  var fsBtn=document.getElementById('fsBtn');
+  function enterPresent(){
+    document.body.classList.add('present'); fsBtn.textContent='結束放映';
+    var el=document.documentElement;
+    try{
+      if(el.requestFullscreen){var p=el.requestFullscreen(); if(p&&p.catch)p.catch(function(){});}
+      else if(el.webkitRequestFullscreen){el.webkitRequestFullscreen();}
+    }catch(e){}
+    window.scrollTo(0,0);
+  }
+  function exitPresent(){
+    document.body.classList.remove('present'); fsBtn.textContent='全螢幕放映';
+    if(document.fullscreenElement)document.exitFullscreen();
+  }
+  fsBtn.addEventListener('click',function(){
+    if(document.body.classList.contains('present'))exitPresent(); else enterPresent();
+  });
+  document.addEventListener('fullscreenchange',function(){
+    if(!document.fullscreenElement&&document.body.classList.contains('present')){
+      document.body.classList.remove('present'); fsBtn.textContent='全螢幕放映';
+    }
   });
   document.addEventListener('keydown',function(e){
     if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA')return;
